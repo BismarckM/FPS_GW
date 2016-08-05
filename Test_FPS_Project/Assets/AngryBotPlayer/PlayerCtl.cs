@@ -26,6 +26,9 @@ public class PlayerCtl : MonoBehaviour {
     private Vector3 curPos = Vector3.zero;
     private Quaternion curRot = Quaternion.identity;
 
+    private float beforeTouch;
+    private float rotSpeed = 3.0f;
+
     // Use this for initialization
     void Awake () {
         _animation = GetComponentInChildren<Animation>();
@@ -164,6 +167,17 @@ public class PlayerCtl : MonoBehaviour {
             else
             {
                 _animation.CrossFade(anim.idle.name, 0.1f);
+            }
+
+            Touch touch = Input.GetTouch(0);
+            if(touch.phase == TouchPhase.Began)
+            {
+                beforeTouch = touch.position.x;
+            }
+            else if(touch.phase == TouchPhase.Moved)
+            {
+                tr.Rotate(0, (touch.position.x - beforeTouch) * Time.deltaTime * rotSpeed, 0);
+                beforeTouch = touch.position.x;
             }
         }
         else
