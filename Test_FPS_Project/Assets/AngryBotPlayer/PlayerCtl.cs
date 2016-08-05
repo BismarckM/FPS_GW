@@ -25,13 +25,14 @@ public class PlayerCtl : MonoBehaviour {
 
     private Vector3 curPos = Vector3.zero;
     private Quaternion curRot = Quaternion.identity;
+    private int animationNumber;
 
     private float beforeTouch;
     private float rotSpeed = 3.0f;
 
     // Use this for initialization
     void Awake () {
-        _animation = GetComponentInChildren<Animation>();
+        _animation = GetComponent<Animation>();
         tr = GetComponent<Transform>();
         pv = GetComponent<PhotonView>();
         rb = GetComponent<Rigidbody>();
@@ -56,6 +57,7 @@ public class PlayerCtl : MonoBehaviour {
 
         curPos = tr.position;
         curRot = tr.rotation;
+        animationNumber = 0;
 	}
 
     void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
@@ -64,11 +66,13 @@ public class PlayerCtl : MonoBehaviour {
         {
             stream.SendNext(tr.position);
             stream.SendNext(tr.rotation);
+            stream.SendNext(animationNumber);
         }
         else
         {
             curPos = (Vector3)stream.ReceiveNext();
             curRot = (Quaternion)stream.ReceiveNext();
+            animationNumber = (int)stream.ReceiveNext();
         }
     }
 
@@ -131,42 +135,52 @@ public class PlayerCtl : MonoBehaviour {
             if (moveDir.x > 0.0f && moveDir.z >= 0.0f && moveDir.x > moveDir.z)
             {
                 _animation.CrossFade(anim.runRight.name, 0.1f);
+                animationNumber = 3;
             }
             else if (moveDir.x >= 0.0f && moveDir.z > 0.0f && moveDir.x <= moveDir.z)
             {
                 _animation.CrossFade(anim.runFoward.name, 0.1f);
+                animationNumber = 1;
             }
             else if (moveDir.x > 0.0f && moveDir.z <= 0.0f && moveDir.x > -moveDir.z)
             {
                 _animation.CrossFade(anim.runRight.name, 0.1f);
+                animationNumber = 3;
             }
             else if (moveDir.x >= 0.0f && moveDir.z < 0.0f && moveDir.x <= -moveDir.z)
             {
                 _animation.CrossFade(anim.runBackward.name, 0.1f);
+                animationNumber = 2;
             }
             else if (moveDir.x < 0.0f && moveDir.z >= 0.0f && -moveDir.x > moveDir.z)
             {
                 _animation.CrossFade(anim.runLeft.name, 0.1f);
+                animationNumber = 4;
             }
             else if (moveDir.x <= 0.0f && moveDir.z > 0.0f && -moveDir.x <= moveDir.z)
             {
                 _animation.CrossFade(anim.runFoward.name, 0.1f);
+                animationNumber = 1;
             }
             else if (moveDir.x < 0.0f && moveDir.z <= 0.0f && -moveDir.x > -moveDir.z)
             {
                 _animation.CrossFade(anim.runLeft.name, 0.1f);
+                animationNumber = 4;
             }
             else if (moveDir.x <= 0.0f && moveDir.z < 0.0f && -moveDir.x <= -moveDir.z)
             {
                 _animation.CrossFade(anim.runBackward.name, 0.1f);
+                animationNumber = 2;
             }
             else if (moveDir.x == 0.0f && moveDir.z == 0.0f)
             {
                 _animation.CrossFade(anim.idle.name, 0.1f);
+                animationNumber = 0;
             }
             else
             {
                 _animation.CrossFade(anim.idle.name, 0.1f);
+                animationNumber = 0;
             }
 
             Touch touch = Input.GetTouch(0);
@@ -182,6 +196,27 @@ public class PlayerCtl : MonoBehaviour {
         }
         else
         {
+            switch(animationNumber)
+            {
+                case 0:
+                    _animation.CrossFade(anim.idle.name, 0.1f);
+                    break;
+                case 1:
+                    _animation.CrossFade(anim.runFoward.name, 0.1f);
+                    break;
+                case 2:
+                    _animation.CrossFade(anim.runBackward.name, 0.1f);
+                    break;
+                case 3:
+                    _animation.CrossFade(anim.runRight.name, 0.1f);
+                    break;
+                case 4:
+                    _animation.CrossFade(anim.runLeft.name, 0.1f);
+                    break;
+                default :
+                    _animation.CrossFade(anim.idle.name, 0.1f);
+                    break;
+            }
             tr.position = Vector3.Lerp(tr.position, curPos, Time.deltaTime * 3.0f);
             tr.rotation = Quaternion.Slerp(tr.rotation, curRot, Time.deltaTime * 3.0f);
         }
